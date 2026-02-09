@@ -1,0 +1,745 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>DaCapperClub</title>
+
+  <style>
+    body { margin:0; font-family: Arial, sans-serif; background:#0b0b0f; color:#fff; }
+    a { color:#7dd3fc; }
+
+    header { padding:16px 20px; border-bottom:1px solid #222; display:flex; justify-content:space-between; align-items:center; }
+    .sub { margin-top:4px; color:#aaa; font-size:12px; }
+    .right { display:flex; align-items:center; gap:8px; }
+    .dot {
+      width:10px; height:10px; border-radius:999px;
+      background:#22c55e;
+      box-shadow:0 0 10px rgba(34,197,94,.6);
+    }
+
+    .layout { display:flex; min-height: calc(100vh - 57px); }
+
+    .sidebar {
+      width: 260px;
+      border-right: 1px solid #222;
+      background: #0e0e13;
+      padding: 14px;
+      box-sizing: border-box;
+      overflow-y: auto;
+    }
+
+    .sidebar h3 {
+      margin: 0 0 10px 0;
+      font-size: 12px;
+      color: #aaa;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+
+    .capper {
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      padding:10px 10px;
+      border-radius:12px;
+      cursor:pointer;
+      border:1px solid transparent;
+    }
+    .capper:hover { background:#14141b; }
+    .capper.active { background:#14141b; border-color:#2a2a2a; }
+
+    .capper-left { display:flex; align-items:center; gap:10px; min-width:0; }
+    .capper-name { font-weight:700; font-size:14px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+    .capper-right { display:flex; align-items:center; gap:8px; }
+    .capper-count { color:#aaa; font-size:12px; }
+
+    /* 🔴 Unread badge */
+    .badge {
+      min-width: 22px;
+      height: 18px;
+      padding: 0 6px;
+      border-radius: 999px;
+      background: #ef4444;
+      color: white;
+      font-size: 12px;
+      font-weight: 800;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+    }
+
+    .main {
+      flex:1;
+      padding: 18px;
+      box-sizing: border-box;
+      overflow-y: auto;
+      max-height: calc(100vh - 57px);
+    }
+
+    .wrap { max-width: 900px; margin: 0 auto; }
+
+    .controls { display:flex; gap:10px; margin-bottom:14px; }
+    input, select { padding:10px; border-radius:10px; border:1px solid #2a2a2a; background:#111; color:#fff; width:100%; }
+    select { width:200px; }
+
+    .card { background:#111; border:1px solid #222; border-radius:14px; padding:14px; margin-bottom:12px; }
+    .top { display:flex; justify-content:space-between; gap:10px; }
+    .name { font-weight:700; }
+    .meta { color:#aaa; font-size:12px; }
+    .content { margin-top:10px; white-space:pre-wrap; line-height:1.35; }
+    .tag { display:inline-block; padding:4px 10px; border-radius:999px; border:1px solid #2a2a2a; font-size:12px; color:#ddd; }
+
+    /* ===================================== */
+    /* ✨ NEW PICK PULSE / GLOW              */
+    /* ===================================== */
+
+    @keyframes pulseGlow {
+      0% { box-shadow: 0 0 0 rgba(34,197,94,0); border-color:#222; }
+      35% { box-shadow: 0 0 18px rgba(34,197,94,.35); border-color: rgba(34,197,94,.65); }
+      100% { box-shadow: 0 0 0 rgba(34,197,94,0); border-color:#222; }
+    }
+
+    /* glow runs until JS removes class after 15s */
+    .card.new-pick { animation: pulseGlow 1.2s ease-in-out 0s infinite; }
+
+  </style>
+</head>
+
+<body>
+  <header>
+    <div>
+      <div style="font-weight:800; font-size:18px;">🔥 DaCapperClub</div>
+      <div class="sub">Live capper picks • updated in real time</div>
+    </div>
+
+    <div class="right">
+      <span class="dot" id="liveDot"></span>
+      <span class="meta" id="status">LIVE</span>
+
+      <!-- Mod login button -->
+      <button
+        id="modBtn"
+        style="
+          padding: 8px 10px;
+          border-radius: 10px;
+          border: 1px solid #2a2a2a;
+          background: #111;
+          color: #fff;
+          cursor: pointer;
+          font-size: 12px;
+        "
+     >
+        Mod
+      </button>
+    </div>
+  </header>
+
+  <div class="layout">
+    <aside class="sidebar">
+      <h3>Cappers</h3>
+      <div id="capperList"></div>
+    </aside>
+
+    <main class="main">
+      <div class="wrap">
+        <div class="controls">
+          <input id="search" placeholder="Search capper or pick text..." />
+          <select id="sport">
+            <option value="">All Sports</option>
+            <option>CFB</option>
+            <option>Esports</option>
+            <option>Foreign Sports</option>
+            <option>MLB</option>
+            <option>MMA</option>
+            <option>NBA</option>
+            <option>NCAAB</option>
+            <option>NFL</option>
+            <option>NHL</option>
+            <option>Soccer</option>
+            <option>Tennis</option>
+            </select>
+            </div>
+
+            <div id="feed"></div>
+
+            </div>
+            </main>
+            </div>
+
+  <script>
+    const feed = document.getElementById("feed");
+    const statusEl = document.getElementById("status");
+    const liveDot = document.getElementById("liveDot");
+    const searchEl = document.getElementById("search");
+    const sportEl = document.getElementById("sport");
+    const capperListEl = document.getElementById("capperList");
+
+    let selectedCapper = ""; // "" means All
+
+    // ==================================================
+    // MOD MODE (store token locally in browser)
+    // ==================================================
+    const MOD_KEY = "dacapperclub_mod_token_v1";
+    let modToken = localStorage.getItem(MOD_KEY) || "";
+
+    function isMod() {
+      return !!modToken;
+    }
+
+    const modBtn = document.getElementById("modBtn");
+
+    if (modBtn) {
+      // hide mod button by default (normal users never see it)
+      modBtn.style.display = "none";
+
+      // show mod button if already logged in
+      if (modToken) {
+        modBtn.style.display = "inline-block";
+      }
+
+      // secret key combo: Shift + M reveals mod button
+      document.addEventListener("keydown", (e) => {
+        if (e.shiftKey && e.key.toLowerCase() === "m") {
+          modBtn.style.display = "inline-block";
+        }
+      });
+
+      // clicking Mod button toggles mod mode
+      modBtn.addEventListener("click", () => {
+        const input = prompt(
+          modToken
+            ? "Mod mode is ON.\n\nEnter new token to replace it, or leave blank to log out:"
+            : "Enter mod token:"
+        );
+
+        if (input === null) return; // user cancelled
+
+        const trimmed = input.trim();
+
+        if (!trimmed) {
+          // logout
+          modToken = "";
+          localStorage.removeItem(MOD_KEY);
+          modBtn.style.display = "none";
+          alert("Mod mode disabled.");
+        } else {
+          // login
+          modToken = trimmed;
+          localStorage.setItem(MOD_KEY, modToken);
+          modBtn.style.display = "inline-block";
+          alert("Mod mode enabled.");
+        }
+
+        // re-render so Hide buttons appear/disappear
+        render(cache);
+      });
+    }
+    // ==================================================
+    // -------------------------------------
+    // Normalize picks coming from /picks
+    // (handles camelCase vs snake_case)
+    // -------------------------------------
+    function normalizePick(p) {
+      const created =
+        p.received_at ??
+        p.created_at ??
+        p.createdAt ??
+        null;
+
+      return {
+        id:
+          p.id ??
+          p.message_id ??
+          p.messageId ??
+          created ??
+          `${p.authorId || p.author_id || "x"}-${Date.now()}`,
+
+        author_name:
+          p.author_name ??
+          p.authorName ??
+          p.author ??
+          "Unknown",
+
+        channel_name:
+          p.channel_name ??
+          p.channelName ??
+          p.channel ??
+          "",
+
+        content: p.content ?? "",
+        received_at: created,
+
+        attachments: Array.isArray(p.attachments)
+          ? p.attachments.map((a) => ({
+              ...a,
+              contentType:
+                a.contentType ??
+                a.content_type ??
+                "",
+            }))
+          : [],
+
+        embeds: Array.isArray(p.embeds)
+          ? p.embeds
+          : [],
+      };
+    }
+
+    // ---- NEW PICK GLOW TRACKING ----
+    const NEW_IDS = new Set();
+
+    function markNewPicks(newOnes) {
+      for (const p of newOnes) {
+        if (p?.id == null) continue;
+        if (NEW_IDS.has(p.id)) continue;
+        NEW_IDS.add(p.id);
+      }
+
+      setTimeout(() => {
+        for (const p of newOnes) {
+          if (p?.id != null) NEW_IDS.delete(p.id);
+        }
+        render(cache);
+      }, 15000);
+    }
+
+    // ---- Persist UI state (localStorage) ----
+    const UI_KEY = "dacapperclub_ui_v1";
+
+    function loadUI() {
+      try {
+        return JSON.parse(localStorage.getItem(UI_KEY) || "{}");
+      } catch {
+        return {};
+      }
+    }
+
+    function saveUI(patch) {
+      const current = loadUI();
+      const next = { ...current, ...patch };
+      localStorage.setItem(UI_KEY, JSON.stringify(next));
+    }
+
+    // ---- UNREAD INDICATORS PER CAPPER ----
+    function getUnread() {
+      const ui = loadUI();
+      return ui.unread || {};
+    }
+
+    function setUnread(unreadObj) {
+      saveUI({ unread: unreadObj });
+    }
+
+    function incUnread(name, by = 1) {
+      const unread = getUnread();
+      unread[name] = (unread[name] || 0) + by;
+      setUnread(unread);
+    }
+
+    function clearUnread(name) {
+      const unread = getUnread();
+      delete unread[name];
+      setUnread(unread);
+    }
+
+    // Restore UI state on load
+    const ui = loadUI();
+    selectedCapper = ui.capper ?? "";
+    searchEl.value = ui.search ?? "";
+    sportEl.value = ui.sport ?? "";
+
+    function scrollToTop() {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      document.querySelector(".main")?.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    function guessSport(text) {
+      const t = (text || "").toLowerCase();
+
+      if (
+        t.includes("tennis") ||
+        t.includes("atp") ||
+        t.includes("wta") ||
+        t.includes("grand slam") ||
+        t.includes("us open") ||
+        t.includes("french open") ||
+        t.includes("wimbledon") ||
+        t.includes("australian open")
+      ) return "Tennis";
+
+      if (t.includes("nba")) return "NBA";
+      if (t.includes("nfl")) return "NFL";
+      if (t.includes("cfb")) return "CFB";
+      if (t.includes("ncaab") || t.includes("cbb")) return "NCAAB";
+      if (t.includes("mlb")) return "MLB";
+      if (t.includes("nhl")) return "NHL";
+      if (t.includes("soccer")) return "Soccer";
+      if (t.includes("mma") || t.includes("ufc")) return "MMA";
+      if (t.includes("esports")) return "Esports";
+      if (
+        t.includes("foreign") ||
+        t.includes("kbl") ||
+        t.includes("cba") ||
+        t.includes("nbl") ||
+        t.includes("kbo")
+      ) return "Foreign Sports";
+    }
+
+    // -------------------------------------
+    // Extra sport detection text sources
+    // (channel_name + content + embeds + filenames)
+    // -------------------------------------
+    function pickSearchText(p) {
+      const parts = [];
+
+      parts.push(p.channel_name || "");
+      parts.push(p.author_name || "");
+      parts.push(p.content || "");
+
+      // embeds: title/description/fields
+      if (Array.isArray(p.embeds)) {
+        for (const e of p.embeds) {
+          if (!e) continue;
+          parts.push(e.title || "");
+          parts.push(e.description || "");
+          if (Array.isArray(e.fields)) {
+            for (const f of e.fields) {
+              if (!f) continue;
+              parts.push(f.name || "");
+              parts.push(f.value || "");
+            }
+          }
+        }
+      }
+
+      // attachments: filenames can contain hints
+      if (Array.isArray(p.attachments)) {
+        for (const a of p.attachments) {
+          if (!a) continue;
+          parts.push(a.filename || "");
+        }
+      }
+
+      return parts.join(" ");
+   }
+
+    function escapeHtml(str) {
+      return (str || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
+    }
+
+    function timeAgo(dateString) {
+      if (!dateString) return "";
+
+      const now = new Date();
+      const then = new Date(dateString);
+      const diffMs = now - then;
+
+      const seconds = Math.floor(diffMs / 1000);
+      const minutes = Math.floor(seconds / 60);
+      const hours   = Math.floor(minutes / 60);
+      const days    = Math.floor(hours / 24);
+
+      if (seconds < 60) return "just now";
+      if (minutes < 60) return `${minutes} min${minutes > 1 ? "s" : ""} ago`;
+      if (hours < 24)   return `${hours} hour${hours > 1 ? "s" : ""} ago`;
+      if (days < 7)     return `${days} day${days > 1 ? "s" : ""} ago`;
+
+      return then.toLocaleDateString();
+    }
+
+    function stripDiscordMentions(text) {
+      return (text || "")
+        .replace(/<@&\d+>/g, "")   // role mentions
+        .replace(/<@!?\d+>/g, "")  // user mentions
+        .replace(/<#\d+>/g, "");   // channel mentions
+    }
+
+    function formatContent(raw) {
+      // remove mentions first (before escaping)
+      let s = stripDiscordMentions(raw);
+
+      // escape HTML so nothing unsafe can execute
+      s = escapeHtml(s);
+
+      // markdown links: [text](url)
+      s = s.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, (m, text, url) => {
+        return `<a href="${url}" target="_blank" rel="noreferrer">${text}</a>`;
+      });
+
+      // bold: **text**
+      s = s.replace(/\*\*(.+?)\*\*/g, "<b>$1</b>");
+
+      // plain urls clickable
+      s = s.replace(/(https?:\/\/[^\s<]+)/g, (url) => {
+        return `<a href="${url}" target="_blank" rel="noreferrer">${url}</a>`;
+      });
+
+      // line breaks
+      s = s.replace(/\n/g, "<br>");
+
+      return s;
+   }
+
+    function buildCappers(picks) {
+      if (!capperListEl) return;
+
+      const unread = getUnread();
+
+      const counts = new Map();
+      for (const p of picks) {
+        const name = p.channel_name || "Unknown";
+        counts.set(name, (counts.get(name) || 0) + 1);
+      }
+
+      const ordered = [];
+      const seen = new Set();
+      for (const p of picks) {
+        const name = p.channel_name || "Unknown";
+        if (!seen.has(name)) {
+          ordered.push(name);
+          seen.add(name);
+        }
+      }
+
+      capperListEl.innerHTML = `
+        <div class="capper ${selectedCapper === "" ? "active" : ""}" data-name="">
+          <div class="capper-left">
+            <span class="capper-name">All</span>
+          </div>
+          <div class="capper-right">
+            <span class="capper-count">${picks.length}</span>
+          </div>
+        </div>
+
+        ${ordered.map((name) => {
+          const u = unread[name] || 0;
+          return `
+            <div class="capper ${selectedCapper === name ? "active" : ""}" data-name="${escapeHtml(name)}">
+              <div class="capper-left">
+                <span class="capper-name">${escapeHtml(name)}</span>
+              </div>
+              <div class="capper-right">
+                ${u ? `<span class="badge">${u}</span>` : ""}
+                <span class="capper-count">${counts.get(name) || 0}</span>
+              </div>
+            </div>
+          `;
+        }).join("")}
+      `;
+
+      capperListEl.querySelectorAll(".capper").forEach((el) => {
+        el.addEventListener("click", () => {
+          selectedCapper = el.dataset.name || "";
+
+          if (selectedCapper) clearUnread(selectedCapper);
+
+          saveUI({
+            capper: selectedCapper,
+            search: searchEl.value,
+            sport: sportEl.value,
+          });
+
+          buildCappers(cache);
+          render(cache);
+          scrollToTop();
+        });
+      });
+    }
+
+    function render(picks) {
+      const q = searchEl.value.trim().toLowerCase();
+      const sportFilter = sportEl.value;
+
+      const filtered = picks.filter((p) => {
+        const channel = (p.channel_name || "").toLowerCase();
+        const author  = (p.author_name || "").toLowerCase();
+        const content = (p.content || "").toLowerCase();
+
+        // search should match what you display (channel_name) + author + content
+        const combined = channel + " " + author + " " + content;
+        const matchesSearch = !q || combined.includes(q);
+
+        const sport = guessSport(pickSearchText(p)) || "";
+        const matchesSport = !sportFilter || sport === sportFilter;
+
+        // sidebar capper filter
+        const matchesCapper =
+          !selectedCapper ||
+          (p.channel_name || "Unknown") === selectedCapper;
+
+        return matchesSearch && matchesSport && matchesCapper;
+      });
+
+      feed.innerHTML = filtered.map((p) => {
+        const when = timeAgo(p.received_at);
+
+        const sport = guessSport(pickSearchText(p)) || "";
+
+        const attachments = Array.isArray(p.attachments) ? p.attachments : [];
+        const imgs = attachments
+          .filter((a) => (a.contentType || "").startsWith("image/"))
+          .map((a) => `
+            <div style="margin-top:10px">
+              <img
+                src="${a.url}"
+                alt="${escapeHtml(a.filename || "image")}"
+                loading="lazy"
+                style="width:100%; max-height:520px; object-fit:contain; border-radius:12px; border:1px solid #222;"
+              />
+            </div>
+          `)
+          .join("");
+
+        const isNew = NEW_IDS.has(p.id);
+
+         return `
+           <div class="card ${isNew ? "new-pick" : ""}">
+             <div class="top">
+               <div>
+                 <div class="name">${escapeHtml(p.channel_name || "Unknown Capper")}</div>
+                 <div class="meta">By ${escapeHtml(p.channel_name || "Unknown")} • ${escapeHtml(when)}</div>
+               </div>
+
+               <div style="display:flex; gap:8px; align-items:center;">
+                 ${sport ? `<span class="tag">${escapeHtml(sport)}</span>` : ""}
+                 ${isMod() ? `<button class="mod-hide" data-hide="${p.id}">Hide</button>` : ""}
+               </div>
+             </div>
+
+             <div class="content">${formatContent(p.content || "")}</div>
+             ${imgs}
+           </div>
+         `;
+      }).join("");
+
+      // ================================
+      // MOD: bind Hide buttons
+      // ================================
+      if (isMod()) {
+        feed.querySelectorAll("[data-hide]").forEach((btn) => {
+          btn.addEventListener("click", async () => {
+            const id = btn.getAttribute("data-hide");
+            if (!id) return;
+
+            if (!confirm("Hide this pick for ALL users?")) return;
+
+            const reason = prompt("Reason (optional):") || "";
+
+            try {
+              const res = await fetch("/admin/hide", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  "x-mod-token": modToken,
+                },
+                body: JSON.stringify({ id, reason }),
+              });
+
+              const out = await res.json().catch(() => ({}));
+              if (!res.ok) throw new Error(out.error || "Hide failed");
+
+              // remove instantly from UI
+              cache = cache.filter((p) => String(p.id) !== String(id));
+              render(cache);
+              buildCappers(cache);
+            } catch (e) {
+              alert("Hide failed: " + e.message);
+            }
+          });
+        });
+      }
+
+      statusEl.textContent = `LIVE • ${filtered.length} shown`;
+
+    }
+
+    let cache = [];
+    let lastSeenId = null;
+    let firstLoad = true;
+
+    async function loadAndCache() {
+      try {
+        const res = await fetch("/picks");
+        const json = await res.json();
+
+        const raw = Array.isArray(json)
+          ? json
+          : (json.picks || json.data || []);
+
+        const picks = raw.map(normalizePick);
+
+        if (firstLoad) {
+          cache = picks;
+          render(cache);
+          buildCappers(cache);
+          firstLoad = false;
+          lastSeenId = cache[0]?.id ?? null;
+        } else {
+          const newOnes = [];
+
+          for (const p of picks) {
+            if (lastSeenId === null) break;
+            if (p.id === lastSeenId) break;
+            newOnes.push(p);
+          }
+
+          if (newOnes.length) {
+            markNewPicks(newOnes);
+
+            // increment unread for cappers you're NOT currently viewing
+            for (const p of newOnes) {
+              const capperName = p.channel_name || "Unknown";
+              if (selectedCapper && capperName === selectedCapper) continue;
+              incUnread(capperName);
+            }
+
+            cache = [...newOnes, ...cache].slice(0, 500);
+            render(cache);
+            buildCappers(cache);
+            lastSeenId = cache[0]?.id ?? lastSeenId;
+          }
+        }
+
+        liveDot.style.opacity = "1";
+        statusEl.textContent = `LIVE • ${cache.length} loaded`;
+      } catch (e) {
+        statusEl.textContent = "Error loading picks";
+        console.error(e);
+        liveDot.style.opacity = "0.35";
+      }
+    }
+
+    searchEl.addEventListener("input", () => {
+      saveUI({ search: searchEl.value });
+      render(cache);
+      scrollToTop();
+    });
+
+    sportEl.addEventListener("change", () => {
+      saveUI({ sport: sportEl.value });
+      render(cache);
+      scrollToTop();
+    });
+    // Initial load
+    loadAndCache();
+
+    // Poll backend every 5 seconds
+    setInterval(loadAndCache, 5000);
+
+    // ⏱️ Refresh "time ago" labels every minute (no API call)
+    setInterval(() => {
+      if (cache && cache.length) {
+        render(cache);
+      }
+    }, 60 * 1000);
+  </script>
+</body>
+</html>
