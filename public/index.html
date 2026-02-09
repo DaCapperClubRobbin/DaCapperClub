@@ -490,6 +490,70 @@
         .replace(/'/g, "&#039;");
     }
 
+    /* ===================================== */
+    /* 🧩 Discord Embed Renderer             */
+    /* ===================================== */
+    function renderEmbed(e) {
+      if (!e) return "";
+
+      const title = e.title
+        ? `<div class="embedTitle">${escapeHtml(e.title)}</div>`
+        : "";
+
+      const desc = e.description
+        ? `<div class="embedDesc">${escapeHtml(e.description)}</div>`
+        : "";
+
+      const url = e.url
+        ? `<a class="embedLink" href="${e.url}" target="_blank" rel="noopener noreferrer">Open</a>`
+        : "";
+
+      const thumb = e.thumbnail?.url
+        ? `<img class="embedThumb" src="${e.thumbnail.url}" />`
+        : "";
+
+      const img = e.image?.url
+        ? `<img class="embedImg" src="${e.image.url}" />`
+        : "";
+
+      const fields =
+        Array.isArray(e.fields) && e.fields.length
+        ? `
+            <div class="embedFields">
+              ${e.fields
+                .map(
+                  (f) => `
+                <div class="embedField">
+                <div class="embedFieldName">
+                  ${escapeHtml(f.name || "")}
+                </div>
+                <div class="embedFieldValue">
+                  ${escapeHtml(f.value || "")}
+                </div>
+              </div>
+            `
+              )
+              .join("")}
+          </div>
+        `
+        : "";
+
+    return `
+      <div class="embedBox">
+        <div class="embedTop">
+          <div class="embedText">
+            ${title}
+            ${desc}
+            ${fields}
+            ${url}
+          </div>
+          ${thumb}
+        </div>
+        ${img}
+      </div>
+    `;
+  }
+
     function timeAgo(dateString) {
       if (!dateString) return "";
 
@@ -670,6 +734,12 @@
              </div>
 
              <div class="content">${formatContent(p.content || "")}</div>
+             ${
+               Array.isArray(p.embeds)
+                 ? p.embeds.map(renderEmbed).join("")
+                 : ""
+             }
+
              ${imgs}
            </div>
          `;
