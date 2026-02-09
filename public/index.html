@@ -157,6 +157,24 @@
      color: #9ca3af;
    }
 
+   /* ===================================== */
+   /* 🖼️ Embed image sizing + click expand   */
+   /* ===================================== */
+
+   .embedImg {
+     width: 100%;
+     max-height: 320px;      /* controls how tall embeds can be */
+     object-fit: cover;
+     border-radius: 12px;
+     margin-top: 10px;
+     cursor: zoom-in;
+   }
+
+   .embedImg.expanded {
+     max-height: none;
+     object-fit: contain;
+     cursor: zoom-out;
+   }
   </style>
 </head>
 
@@ -868,6 +886,15 @@
         render(cache);
       }
     }, 60 * 1000);
+
+    // 🖱️ Click-to-expand embed images
+    document.addEventListener("click", (e) => {
+      const img = e.target.closest(".embedImg");
+      if (!img) return;
+      img.classList.toggle("expanded");
+    });
+
   </script>
 </body>
 </html>
+
