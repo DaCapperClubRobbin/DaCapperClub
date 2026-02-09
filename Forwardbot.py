@@ -12,7 +12,7 @@ load_dotenv(env_path)
 
 TOKEN = os.getenv("DISCORD_TOKEN")
 INGEST_TOKEN = (os.getenv("INGEST_TOKEN") or "").strip()
-API_URL = "http://localhost:3000/picks"
+API_URL = "https://dacapperclub.onrender.com/picks"
 
 http_session: aiohttp.ClientSession | None = None
 
