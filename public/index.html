@@ -793,37 +793,38 @@
 
       // These cappers should always be at the bottom
       const PIN_TO_BOTTOM = new Set([
-        "nba-insights",
-        "ncaamb-insights",
-        "mlb-insights",
-        "nhl-insights",
-        "nfl-insights",
+        "nba insights",
+        "ncaamb insights",
+        "mlb insights",
+        "nhl insights",
+        "nfl insights",
       ]);
 
       // Strip emojis / symbols so ⚠️Dormroom sorts as Dormroom
       function sortKey(name) {
         return (name || "")
+          .normalize("NFKD")
           .trim()
-          .replace(/^[^a-z0-9]+/i, "");
+          .replace(/^[^\p{L}\p{N}]+/gu, "")
+          .toLowerCase();
       }
 
       const ordered = Array.from(counts.keys())
         .filter((name) => name && name !== "All")
         .sort((a, b) => {
-          const aLower = a.toLowerCase();
-          const bLower = b.toLowerCase();
+          const aKey = sortKey(a);
+          const bKey = sortKey(b);
 
-          const aPinned = PIN_TO_BOTTOM.has(aLower);
-          const bPinned = PIN_TO_BOTTOM.has(bLower);
+          const aPinned = PIN_TO_BOTTOM.has(aKey);
+          const bPinned = PIN_TO_BOTTOM.has(bKey);
+
 
           // Push pinned items to bottom
           if (aPinned && !bPinned) return 1;
           if (!aPinned && bPinned) return -1;
 
           // Normal A–Z sort ignoring emojis
-          return sortKey(a).localeCompare(sortKey(b), undefined, {
-            sensitivity: "base",
-          });
+          return aKey.localeCompare(bKey, undefined, { sensitivity: "base" });
         });
 
       capperListEl.innerHTML = `
