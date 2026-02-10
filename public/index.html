@@ -228,6 +228,79 @@
        0 0 12px rgba(88, 101, 242, 0.15);
    }
 
+   /* ===================================== */
+   /* ➖ Subtle divider between cards         */
+   /* ===================================== */
+   .card {
+     position: relative; /* needed for the divider */
+   }
+
+   .card:not(:last-child)::after {
+     content: "";
+     position: absolute;
+     left: 16px;
+     right: 16px;
+     bottom: -10px;
+     height: 1px;
+     background: rgba(255,255,255,0.06);
+   }
+
+   /* ===================================== */
+   /* 🔒 Lock page scroll (sidebar + feed)  */
+   /* ===================================== */
+
+   html, body {
+     height: 100%;
+     overflow: hidden;
+   }
+
+   .layout {
+     height: calc(100vh - 57px);
+     overflow: hidden;
+   }
+
+   .sidebar {
+     height: 100%;
+     overflow-y: auto;
+   }
+
+   .main {
+     height: 100%;
+     overflow-y: auto;
+     max-height: none;
+   }
+
+   /* ===================================== */
+   /* 🧼 Thin premium scrollbar              */
+   /* ===================================== */
+
+   .sidebar::-webkit-scrollbar,
+   .main::-webkit-scrollbar {
+     width: 8px;
+   }
+
+   .sidebar::-webkit-scrollbar-track,
+   .main::-webkit-scrollbar-track {
+     background: transparent;
+   }
+
+   .sidebar::-webkit-scrollbar-thumb,
+   .main::-webkit-scrollbar-thumb {
+     background: rgba(255,255,255,0.12);
+     border-radius: 999px;
+   }
+
+   .sidebar::-webkit-scrollbar-thumb:hover,
+   .main::-webkit-scrollbar-thumb:hover {
+     background: rgba(255,255,255,0.25);
+   }
+
+   .sidebar,
+   .main {
+     scrollbar-width: thin;
+     scrollbar-color: rgba(255,255,255,0.25) transparent;
+   }
+
   </style>
 </head>
 
@@ -706,15 +779,9 @@
         counts.set(name, (counts.get(name) || 0) + 1);
       }
 
-      const ordered = [];
-      const seen = new Set();
-      for (const p of picks) {
-        const name = p.channel_name || "Unknown";
-        if (!seen.has(name)) {
-          ordered.push(name);
-          seen.add(name);
-        }
-      }
+      const ordered = Array.from(counts.keys())
+        .filter((name) => name && name !== "All")
+        .sort((a, b) => a.localeCompare(b, undefined, { sensitivity: "base" }));
 
       capperListEl.innerHTML = `
         <div class="capper ${selectedCapper === "" ? "active" : ""}" data-name="">
