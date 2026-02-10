@@ -251,23 +251,35 @@
 
    html, body {
      height: 100%;
-     overflow: hidden;
+     margin: 0;
+   }
+
+   body {
+     overflow: hidden;              /* only sidebar + main scroll */
+     display: flex;
+     flex-direction: column;
+   }
+
+   header {
+     flex: 0 0 auto;
    }
 
    .layout {
-     height: calc(100vh - 57px);
+     flex: 1 1 auto;
+     min-height: 0;                 /* IMPORTANT: allows inner scrolling */
      overflow: hidden;
    }
 
    .sidebar {
-     height: 100%;
      overflow-y: auto;
+     height: 100%;
    }
 
    .main {
-     height: 100%;
      overflow-y: auto;
+     height: 100%;
      max-height: none;
+     -webkit-overflow-scrolling: touch;
    }
 
    /* ===================================== */
@@ -779,9 +791,40 @@
         counts.set(name, (counts.get(name) || 0) + 1);
       }
 
+      // These cappers should always be at the bottom
+      const PIN_TO_BOTTOM = new Set([
+        "nba-insights",
+        "ncaamb-insights",
+        "mlb-insights",
+        "nhl-insights",
+        "nfl-insights",
+      ]);
+
+      // Strip emojis / symbols so ⚠️Dormroom sorts as Dormroom
+      function sortKey(name) {
+        return (name || "")
+          .trim()
+          .replace(/^[^a-z0-9]+/i, "");
+      }
+
       const ordered = Array.from(counts.keys())
         .filter((name) => name && name !== "All")
-        .sort((a, b) => a.localeCompare(b, undefined, { sensitivity: "base" }));
+        .sort((a, b) => {
+          const aLower = a.toLowerCase();
+          const bLower = b.toLowerCase();
+
+          const aPinned = PIN_TO_BOTTOM.has(aLower);
+          const bPinned = PIN_TO_BOTTOM.has(bLower);
+
+          // Push pinned items to bottom
+          if (aPinned && !bPinned) return 1;
+          if (!aPinned && bPinned) return -1;
+
+          // Normal A–Z sort ignoring emojis
+          return sortKey(a).localeCompare(sortKey(b), undefined, {
+            sensitivity: "base",
+          });
+        });
 
       capperListEl.innerHTML = `
         <div class="capper ${selectedCapper === "" ? "active" : ""}" data-name="">
