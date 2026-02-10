@@ -739,7 +739,7 @@
       });
 
       feed.innerHTML = filtered.map((p) => {
-        const when = timeAgo(p.received_at);
+        const when = p.received_at ? timeAgo(p.received_at) : "";
 
         const sport = guessSport(pickSearchText(p)) || "";
 
