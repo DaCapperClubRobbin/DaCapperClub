@@ -509,6 +509,29 @@
     }
 
     /* ===================================== */
+    /* 🔗 Shorten + clean embed URLs          */
+    /* ===================================== */
+    function linkifyAndShorten(text) {
+      if (!text) return "";
+
+      return escapeHtml(text).replace(
+        /(https?:\/\/[^\s]+)/g,
+        (url) => {
+          const short =
+            url.includes("outlier.bet")
+            ? "View on Outlier →"
+            : "Open link →";
+
+        return `<a href="${url}" target="_blank" rel="noopener noreferrer">${short}</a>`;
+      }
+    );
+  }
+
+  function timeAgo(date) {
+    ...
+  }
+
+    /* ===================================== */
     /* 🧩 Discord Embed Renderer             */
     /* ===================================== */
     function renderEmbed(e) {
@@ -519,11 +542,11 @@
         : "";
 
       const desc = e.description
-        ? `<div class="embedDesc">${escapeHtml(e.description)}</div>`
+        ? `<div class="embedDesc">${linkifyAndShorten(e.description)}</div>`
         : "";
 
       const url = e.url
-        ? `<a class="embedLink" href="${e.url}" target="_blank" rel="noopener noreferrer">Open</a>`
+  ? `<a class="embedLink" href="${e.url}" target="_blank" rel="noopener noreferrer">Open</a>`
         : "";
 
       const thumb = e.thumbnail?.url
