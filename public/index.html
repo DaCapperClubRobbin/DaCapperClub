@@ -163,7 +163,7 @@
     }
 
     /* ===================================== */
-    /* 🟣 PICKS LOADED INDICATOR (BRAND IDLE) */
+    /* 🟢 PICKS LOADED INDICATOR (GREEN)      */
     /* ===================================== */
 
     .live-indicator {
@@ -176,16 +176,16 @@
       width: 10px;
       height: 10px;
       border-radius: 50%;
-      background: #5865f2; /* DaCapperClub brand blurple */
-      box-shadow: 0 0 10px rgba(88,101,242,0.6);
-      animation: brandPulse 1.6s ease-in-out infinite;
+      background: #22c55e; /* ALWAYS GREEN */
+      box-shadow: 0 0 10px rgba(34,197,94,0.55);
+      animation: greenPulse 1.6s ease-in-out infinite;
     }
 
-    /* idle blurple pulse */
-    @keyframes brandPulse {
-      0%   { box-shadow: 0 0 0 rgba(88,101,242,0); }
-      50%  { box-shadow: 0 0 12px rgba(88,101,242,0.6); }
-      100% { box-shadow: 0 0 0 rgba(88,101,242,0); }
+    /* idle green pulse */
+    @keyframes greenPulse {
+      0%   { box-shadow: 0 0 0 rgba(34,197,94,0); }
+      50%  { box-shadow: 0 0 12px rgba(34,197,94,0.55); }
+      100% { box-shadow: 0 0 0 rgba(34,197,94,0); }
     }
 
     .live-text {
@@ -195,28 +195,15 @@
       letter-spacing: 0.3px;
     }
 
-    /* ===================================== */
-    /* 🟢 NEW PICK FLASH (OVERRIDES IDLE)     */
-    /* ===================================== */
-
+    /* flash on new pick */
     .live-dot.flash {
-      background: #22c55e; /* GREEN on new pick */
-      animation: liveFlashGreen 0.8s ease-out;
+      animation: greenFlash 0.85s ease-out;
     }
 
-    @keyframes liveFlashGreen {
-      0% {
-        box-shadow: 0 0 0 rgba(34,197,94,0);
-        transform: scale(1);
-      }
-      40% {
-         box-shadow: 0 0 18px rgba(34,197,94,0.95);
-         transform: scale(1.5);
-      }
-      100% {
-        box-shadow: 0 0 0 rgba(34,197,94,0);
-        transform: scale(1);
-      }
+    @keyframes greenFlash {
+      0%   { transform: scale(1); box-shadow: 0 0 0 rgba(34,197,94,0); }
+      45%  { transform: scale(1.55); box-shadow: 0 0 22px rgba(34,197,94,0.95); }
+      100% { transform: scale(1); box-shadow: 0 0 0 rgba(34,197,94,0); }
     }
 
    /* ===================================== */
@@ -543,17 +530,14 @@
     const NEW_IDS = new Set();
 
     function markNewPicks(newOnes) {
-
       // 🟢 Flash LIVE dot when new picks arrive
       const dot = document.querySelector(".live-dot");
       if (dot) {
         dot.classList.remove("flash");
         void dot.offsetWidth; // restart animation
         dot.classList.add("flash");
-
-        // remove after the flash so it can flash again next time
         setTimeout(() => dot.classList.remove("flash"), 900);
-      }      
+      }
 
       for (const p of newOnes) {
         if (p?.id == null) continue;
