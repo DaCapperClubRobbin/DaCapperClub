@@ -85,12 +85,37 @@
     input, select { padding:10px; border-radius:10px; border:1px solid #2a2a2a; background:#111; color:#fff; width:100%; }
     select { width:200px; }
 
-    .card { background:#111; border:1px solid #222; border-radius:14px; padding:14px; margin-bottom:12px; }
-    .top { display:flex; justify-content:space-between; gap:10px; }
-    .name { font-weight:700; }
-    .meta { color:#aaa; font-size:12px; }
-    .content { margin-top:10px; white-space:pre-wrap; line-height:1.35; }
-    .tag { display:inline-block; padding:4px 10px; border-radius:999px; border:1px solid #2a2a2a; font-size:12px; color:#ddd; }
+    .card {
+      background: #111;
+      border: 1px solid #222;
+      border-radius: 14px;
+      padding: 14px;
+      margin-bottom: 14px;
+
+      /* premium elevation */
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45);
+    }
+
+    /* ===================================== */
+    /* 🖱️ Desktop-only interactive polish    */
+    /* ===================================== */
+
+    @media (hover: hover) and (pointer: fine) {
+      .card {
+        cursor: pointer;
+      }
+
+      .card:hover .name {
+        text-decoration: underline;
+        text-underline-offset: 3px;
+      }
+    }
 
     /* ===================================== */
     /* ✨ NEW PICK PULSE / GLOW (GOLD)        */
