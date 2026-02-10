@@ -175,13 +175,38 @@
      object-fit: contain;
      cursor: zoom-out;
    }
+
+   /* ===================================== */
+   /* 🏷️ Brand header (logo + name)          */
+   /* ===================================== */
+
+   .brand {
+     display: flex;
+     align-items: center;
+     gap: 10px;
+   }
+
+   .brandLogo {
+     height: 28px;
+     width: auto;
+   }
+
+   .brandName {
+     font-weight: 800;
+     font-size: 18px;
+     letter-spacing: 0.3px;
+   }
+
   </style>
 </head>
 
 <body>
   <header>
     <div>
-      <div style="font-weight:800; font-size:18px;">🔥 DaCapperClub</div>
+      <div class="brand">
+        <img class="brandLogo" src="/dacapperclub-logo.png" alt="DaCapperClub" />
+        <span class="brandName">DaCapperClub</span>
+      </div>
       <div class="sub">Live capper picks • updated in real time</div>
     </div>
 
