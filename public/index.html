@@ -754,6 +754,29 @@
         .replace(/<#\d+>/g, "");   // channel mentions
     }
 
+    /* =============================== */
+    /* 🔗 Pretty link text helper      */
+    /* =============================== */
+    function prettyLinkText(url) {
+      try {
+        const u = new URL(url);
+
+        if (u.hostname.includes("outlier.bet")) return "View on Outlier →";
+        if (u.hostname.includes("scoresandodds.com")) return "Open Scores & Odds →";
+        if (u.hostname.includes("actionnetwork.com")) return "Open Action Network →";
+
+        const path = u.pathname
+          .split("/")
+          .filter(Boolean)
+          .slice(0, 2)
+          .join("/");
+
+        return path ? `${u.hostname}/${path} →` : `${u.hostname} →`;
+      } catch {
+        return "Open link →";
+      }
+    }
+
     function formatContent(raw) {
       // remove mentions first (before escaping)
       let s = stripDiscordMentions(raw);
@@ -762,8 +785,10 @@
       s = escapeHtml(s);
 
       // markdown links: [text](url)
-      s = s.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, (m, text, url) => {
-        return `<a href="${url}" target="_blank" rel="noreferrer">${text}</a>`;
+      s = s.replace(/(https?:\/\/[^\s<]+)/g, (url) => {
+        return `<a href="${url}" target="_blank" rel="noreferrer">
+          ${prettyLinkText(url)}
+        </a>`;
       });
 
       // bold: **text**
@@ -793,11 +818,11 @@
 
       // These cappers should always be at the bottom
       const PIN_TO_BOTTOM = new Set([
-        "nba-insights",
-        "ncaamb-insights",
-        "mlb- insights",
-        "nhl-insights",
-        "nfl-insights",
+        "nba insights",
+        "ncaamb insights",
+        "mlb insights",
+        "nhl insights",
+        "nfl insights",
       ]);
 
       // Strip emojis / symbols so ⚠️Dormroom sorts as Dormroom
@@ -805,7 +830,8 @@
         return (name || "")
           .normalize("NFKD")
           .trim()
-          .replace(/^[^\p{L}\p{N}]+/gu, "")
+          .replace(/^[^\p{L}\p{N}]+/gu, "") // strip emojis/symbols at start
+          .replace(/[-_]+/g, " ")           // normalize hyphens & underscores
           .toLowerCase();
       }
 
