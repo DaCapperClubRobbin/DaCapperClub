@@ -118,20 +118,20 @@
     }
 
     /* ===================================== */
-    /* ✨ NEW PICK PULSE / GLOW (GOLD)        */
+    /* ✨ NEW PICK PULSE / GLOW (BRAND)       */
     /* ===================================== */
 
     @keyframes pulseGlow {
       0% {
-        box-shadow: 0 0 0 rgba(234, 179, 8, 0);
+        box-shadow: 0 0 0 rgba(88,101,242,0);
         border-color: #222;
       }
       40% {
-        box-shadow: 0 0 16px rgba(234, 179, 8, 0.45);
-        border-color: rgba(234, 179, 8, 0.7);
+        box-shadow: 0 0 18px rgba(88,101,242,0.45);
+        border-color: rgba(88,101,242,0.7);
       }
       100% {
-        box-shadow: 0 0 0 rgba(234, 179, 8, 0);
+        box-shadow: 0 0 0 rgba(88,101,242,0);
         border-color: #222;
       }
     }
@@ -141,46 +141,85 @@
       animation: pulseGlow 1.4s ease-in-out infinite;
       background: linear-gradient(
         180deg,
-        rgba(234,179,8,0.035),
+        rgba(88,101,242,0.045),
         rgba(0,0,0,0)
       );
-    } 
-   /* ===================================== */
-   /* 🔴 LIVE STATUS INDICATOR               */
-   /* ===================================== */
+    }
 
-   .live-indicator {
-     display: flex;
-     align-items: center;
-     gap: 8px;
-   }
+    /* ===================================== */
+    /* ✨ Capper glow when unread (brand)     */
+    /* ===================================== */
 
-   .live-dot {
-     width: 8px;
-     height: 8px;
-     border-radius: 50%;
-     background: #22c55e;
-     display: inline-block;
-     animation: livePulse 1.5s ease-in-out infinite;
-   }
+    .capper.unread {
+      border-color: rgba(88, 101, 242, 0.45);
+      box-shadow: 0 0 0 rgba(88, 101, 242, 0);
+    }
 
-   @keyframes livePulse {
-     0% {
-       box-shadow: 0 0 0 rgba(34, 197, 94, 0);
-     }
-     50% {
-       box-shadow: 0 0 10px rgba(34, 197, 94, 0.6);
-     }
-     100% {
-       box-shadow: 0 0 0 rgba(34, 197, 94, 0);
-     }
-   }
+    .capper.unread .capper-name {
+      color: #dfe3ff;
+      text-shadow:
+        0 0 8px rgba(88, 101, 242, 0.30),
+        0 0 14px rgba(88, 101, 242, 0.18);
+    }
 
-   .live-text {
-     font-size: 12px;
-     font-weight: 600;
-     color: #9ca3af;
-   }
+    /* ===================================== */
+    /* 🟣 PICKS LOADED INDICATOR (BRAND)      */
+    /* ===================================== */
+
+    .live-indicator {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .live-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: #5865f2; /* DaCapperClub brand */
+      box-shadow: 0 0 10px rgba(88, 101, 242, 0.6);
+    }
+
+    /* idle pulse */
+    @keyframes brandPulse {
+      0%   { box-shadow: 0 0 0 rgba(88,101,242,0); }
+      50%  { box-shadow: 0 0 12px rgba(88,101,242,0.6); }
+      100% { box-shadow: 0 0 0 rgba(88,101,242,0); }
+    }
+
+    .live-dot {
+      animation: brandPulse 1.6s ease-in-out infinite;
+    }
+
+    .live-text {
+      font-size: 14px;          /* slightly bigger */
+      font-weight: 700;
+      color: #dfe3ff;           /* same as brand text */
+      letter-spacing: 0.3px;
+    }
+
+    /* ===================================== */
+    /* 🟢 LIVE DOT FLASH (GREEN)              */
+    /* ===================================== */
+
+    .live-dot.flash {
+      animation: liveFlashGreen 0.8s ease-out;
+    }
+
+    @keyframes liveFlashGreen {
+      0% {
+        box-shadow: 0 0 0 rgba(34,197,94,0);
+        transform: scale(1);
+      }
+      40% {
+        box-shadow: 0 0 16px rgba(34,197,94,0.9);
+        transform: scale(1.4);
+      }
+      100% {
+        box-shadow: 0 0 0 rgba(34,197,94,0);
+        transform: scale(1);
+      }
+    }
 
    /* ===================================== */
    /* 🖼️ Embed image sizing + click expand   */
@@ -283,12 +322,12 @@
    }
 
    /* ===================================== */
-   /* 🧼 Thin premium scrollbar              */
+   /* 🧭 Scrollbars (slightly larger)        */
    /* ===================================== */
 
    .sidebar::-webkit-scrollbar,
    .main::-webkit-scrollbar {
-     width: 8px;
+     width: 12px;
    }
 
    .sidebar::-webkit-scrollbar-track,
@@ -298,19 +337,22 @@
 
    .sidebar::-webkit-scrollbar-thumb,
    .main::-webkit-scrollbar-thumb {
-     background: rgba(255,255,255,0.12);
+     background: rgba(255,255,255,0.22);
      border-radius: 999px;
+     border: 3px solid transparent;
+     background-clip: content-box;
    }
 
    .sidebar::-webkit-scrollbar-thumb:hover,
    .main::-webkit-scrollbar-thumb:hover {
-     background: rgba(255,255,255,0.25);
+     background: rgba(255,255,255,0.38);
    }
 
+   /* Firefox */
    .sidebar,
    .main {
-     scrollbar-width: thin;
-     scrollbar-color: rgba(255,255,255,0.25) transparent;
+     scrollbar-width: auto;
+     scrollbar-color: rgba(255,255,255,0.35) transparent;
    }
 
   </style>
@@ -328,7 +370,7 @@
     <div class="right live-indicator">
       <span class="live-dot"></span>
       <span class="live-text">
-        LIVE • <span id="loadedCount">0</span> loaded
+        Picks Loaded • <span id="loadedCount">0</span>
       </span>
     </div>
 
@@ -505,6 +547,15 @@
     const NEW_IDS = new Set();
 
     function markNewPicks(newOnes) {
+
+      // 🟢 Flash LIVE dot when new picks arrive
+      const dot = document.querySelector(".live-dot");
+      if (dot) {
+        dot.classList.remove("flash");
+        void dot.offsetWidth; // restart animation
+        dot.classList.add("flash");
+      }
+
       for (const p of newOnes) {
         if (p?.id == null) continue;
         if (NEW_IDS.has(p.id)) continue;
@@ -754,56 +805,46 @@
         .replace(/<#\d+>/g, "");   // channel mentions
     }
 
-    /* =============================== */
-    /* 🔗 Pretty link text helper      */
-    /* =============================== */
-    function prettyLinkText(url) {
-      try {
-        const u = new URL(url);
+    /* ================================ */
+    /* 🔗 Shorten long links in content */
+    /* ================================ */
+    function linkifyAndShortenContent(text) {
+      if (!text) return "";
 
-        if (u.hostname.includes("outlier.bet")) return "View on Outlier →";
-        if (u.hostname.includes("scoresandodds.com")) return "Open Scores & Odds →";
-        if (u.hostname.includes("actionnetwork.com")) return "Open Action Network →";
+      return text.replace(/(https?:\/\/[^\s<]+)/g, (url) => {
+        let label = "Open link →";
 
-        const path = u.pathname
-          .split("/")
-          .filter(Boolean)
-          .slice(0, 2)
-          .join("/");
+        if (url.includes("playbook.actionnetwork.com")) label = "Open Action Network →";
+        else if (url.includes("scoresandodds.com")) label = "View Scores & Odds →";
+        else if (url.includes("fanduel.com")) label = "Open FanDuel →";
+        else if (url.includes("draftkings.com")) label = "Open DraftKings →";
 
-        return path ? `${u.hostname}/${path} →` : `${u.hostname} →`;
-      } catch {
-        return "Open link →";
-      }
+        return `<a href="${url}" target="_blank" rel="noreferrer">${label}</a>`;
+      });
     }
 
     function formatContent(raw) {
-      // remove mentions first (before escaping)
+      // remove mentions first
       let s = stripDiscordMentions(raw);
 
       // escape HTML so nothing unsafe can execute
       s = escapeHtml(s);
 
       // markdown links: [text](url)
-      s = s.replace(/(https?:\/\/[^\s<]+)/g, (url) => {
-        return `<a href="${url}" target="_blank" rel="noreferrer">
-          ${prettyLinkText(url)}
-        </a>`;
-      });
+      s = s.replace(
+        /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,
+        (m, text, url) =>
+          `<a href="${url}" target="_blank" rel="noreferrer">${text}</a>`
+      );
 
-      // bold: **text**
-      s = s.replace(/\*\*(.+?)\*\*/g, "<b>$1</b>");
-
-      // plain urls clickable
-      s = s.replace(/(https?:\/\/[^\s<]+)/g, (url) => {
-        return `<a href="${url}" target="_blank" rel="noreferrer">${url}</a>`;
-      });
+      // 🔗 shorten + clean ALL remaining links
+      s = linkifyAndShortenContent(s);
 
       // line breaks
       s = s.replace(/\n/g, "<br>");
 
       return s;
-   }
+    }
 
     function buildCappers(picks) {
       if (!capperListEl) return;
@@ -825,15 +866,16 @@
         "nfl insights",
       ]);
 
-      // Strip emojis / symbols so ⚠️Dormroom sorts as Dormroom
       function sortKey(name) {
         return (name || "")
           .normalize("NFKD")
           .trim()
           .replace(/^[^\p{L}\p{N}]+/gu, "") // strip emojis/symbols at start
-          .replace(/[-_]+/g, " ")           // normalize hyphens & underscores
+          .replace(/[-_]+/g, " ")           // normalize hyphens/underscores
+          .replace(/\s+/g, " ")             // collapse spaces
           .toLowerCase();
       }
+
 
       const ordered = Array.from(counts.keys())
         .filter((name) => name && name !== "All")
@@ -841,15 +883,13 @@
           const aKey = sortKey(a);
           const bKey = sortKey(b);
 
-          const aPinned = PIN_TO_BOTTOM.has(aKey);
-          const bPinned = PIN_TO_BOTTOM.has(bKey);
-
+          const aPinned = aKey.includes("insights");
+          const bPinned = bKey.includes("insights");
 
           // Push pinned items to bottom
           if (aPinned && !bPinned) return 1;
           if (!aPinned && bPinned) return -1;
 
-          // Normal A–Z sort ignoring emojis
           return aKey.localeCompare(bKey, undefined, { sensitivity: "base" });
         });
 
@@ -865,8 +905,10 @@
 
         ${ordered.map((name) => {
           const u = unread[name] || 0;
+
           return `
-            <div class="capper ${selectedCapper === name ? "active" : ""}" data-name="${escapeHtml(name)}">
+            <div class="capper ${u ? "unread" : ""} ${selectedCapper === name ? "active" : ""}"
+                 data-name="${escapeHtml(name)}">
               <div class="capper-left">
                 <span class="capper-name">${escapeHtml(name)}</span>
               </div>
@@ -877,6 +919,7 @@
             </div>
           `;
         }).join("")}
+
       `;
 
       capperListEl.querySelectorAll(".capper").forEach((el) => {
