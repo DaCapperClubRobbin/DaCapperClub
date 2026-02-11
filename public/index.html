@@ -460,21 +460,27 @@
      -webkit-overflow-scrolling: touch;
    }
 
+   /* ✨ Smooth scroll feel (Mac polish) */
+   .main,
+   .sidebar {
+     scroll-behavior: smooth;
+   }
+
    /* ===================================== */
    /* 🧭 Scrollbars (sidebar + feed)         */
    /* ===================================== */
 
-   /* Sidebar (keep how you like it) */
+   /* Sidebar (make blurple to match feed) */
    .sidebar::-webkit-scrollbar { width: 12px; }
-   .sidebar::-webkit-scrollbar-track { background: transparent; }
+   .sidebar::-webkit-scrollbar-track { background: rgba(255,255,255,0.04); }
    .sidebar::-webkit-scrollbar-thumb{
-     background: rgba(255,255,255,0.22);
+     background: rgba(88,101,242,0.55);
      border-radius: 999px;
      border: 3px solid transparent;
      background-clip: content-box;
    }
    .sidebar::-webkit-scrollbar-thumb:hover{
-     background: rgba(255,255,255,0.38);
+     background: rgba(88,101,242,0.85);
    }
 
    /* Feed (picks area) bigger + brand */
@@ -493,7 +499,7 @@
    /* Firefox */
    .sidebar{
      scrollbar-width: auto;
-     scrollbar-color: rgba(255,255,255,0.35) transparent;
+     scrollbar-color: rgba(88,101,242,0.70) transparent;
    }
    .main{
      scrollbar-width: auto;
