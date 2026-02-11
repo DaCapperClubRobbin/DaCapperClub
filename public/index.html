@@ -590,6 +590,9 @@
         embeds: Array.isArray(p.embeds)
           ? p.embeds
           : [],
+
+        // ✅ ADD THIS LINE
+        hidden: p.hidden === true || p.is_hidden === true || p.hidden_at != null,
       };
     }
 
