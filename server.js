@@ -99,6 +99,11 @@ function getModTokens() {
     .filter(Boolean);
 }
 
+function isMod(req) {
+  const token = String(req.headers["x-mod-token"] || "").trim();
+  return !!token && getModTokens().includes(token);
+}
+
 function requireMod(req, res, next) {
   const token = String(req.headers["x-mod-token"] || "").trim();
   const allowed = getModTokens();
@@ -111,11 +116,13 @@ function requireMod(req, res, next) {
 }
 
 // ==================================================
-// GET PICKS (hide picks removed by mods)
+// GET PICKS (mods see hidden + get hidden flag)
 // ==================================================
 app.get("/picks", async (req, res) => {
   try {
-    // fetch hidden pick IDs
+    const mod = isMod(req);
+
+    // 1) fetch hidden pick IDs
     const { data: hiddenRows, error: hiddenErr } = await supabase
       .from("hidden_picks")
       .select("pick_id");
@@ -125,9 +132,11 @@ app.get("/picks", async (req, res) => {
       return res.status(500).json({ error: "Failed to fetch hidden picks" });
     }
 
-    const hiddenIds = new Set((hiddenRows || []).map((r) => r.pick_id));
+    const hiddenIds = new Set(
+      (hiddenRows || []).map((r) => String(r.pick_id))
+    );
 
-    // fetch picks
+    // 2) fetch picks
     const { data, error } = await supabase
       .from("picks")
       .select("*")
@@ -139,10 +148,18 @@ app.get("/picks", async (req, res) => {
       return res.status(500).json({ error: "Failed to fetch picks" });
     }
 
-    // remove hidden picks for ALL users
-    const visible = (data || []).filter((p) => !hiddenIds.has(p.id));
+    // 3) attach hidden flag
+    let out = (data || []).map((p) => ({
+      ...p,
+      hidden: hiddenIds.has(String(p.id)),
+    }));
 
-    res.json(visible);
+    // 4) non-mods never see hidden picks
+    if (!mod) {
+      out = out.filter((p) => !p.hidden);
+    }
+
+    res.json(out);
   } catch (err) {
     console.error("❌ /picks crash:", err);
     res.status(500).json({ error: "Server error" });
@@ -185,6 +202,39 @@ app.post("/admin/hide", modLimiter, requireMod, async (req, res) => {
     res.status(500).json({ error: "Server error" });
   }
 });
+
+// ==================================================
+// MOD: UNHIDE A PICK
+// ==================================================
+app.post("/admin/unhide", modLimiter, requireMod, async (req, res) => {
+  try {
+    const id = req.body?.id;
+    if (!id) {
+      return res.status(400).json({ error: "Missing pick id" });
+    }
+
+    const pickId = Number(id);
+    if (!Number.isFinite(pickId)) {
+      return res.status(400).json({ error: "Invalid pick id" });
+    }
+
+    const { error } = await supabase
+      .from("hidden_picks")
+      .delete()
+      .eq("pick_id", pickId);
+
+    if (error) {
+      console.error("❌ unhide error:", error);
+      return res.status(500).json({ error: error.message });
+    }
+
+    res.json({ ok: true });
+  } catch (err) {
+    console.error("❌ /admin/unhide crash:", err);
+    res.status(500).json({ error: "Server error" });
+  }
+});
+
 // ==================================================
 // Health check
 app.get("/health", (req, res) => {

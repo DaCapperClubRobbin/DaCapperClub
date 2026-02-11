@@ -102,6 +102,73 @@
       box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45);
     }
 
+    /* top row layout */
+    .top{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-start;  /* keeps actions pinned to top */
+      gap:12px;
+    }
+
+    .card-actions{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      margin-top:2px;
+      flex-shrink:0;
+    }
+
+    /* sport pill */
+    .tag{
+      display:inline-flex;
+      align-items:center;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,0.12);
+      background: rgba(17,17,17,0.85);
+      color:#dfe3ff;
+      font-size:12px;
+      font-weight:800;
+      letter-spacing:.2px;
+      white-space:nowrap;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+    }
+
+    /* mod pills */
+    .mod-pill{
+      display:inline-flex;
+      align-items:center;
+      padding:6px 10px;
+      border-radius:999px;
+      border:1px solid rgba(255,255,255,0.12);
+      background: rgba(17,17,17,0.85);
+      color:#dfe3ff;
+      font-size:12px;
+      font-weight:800;
+      cursor:pointer;
+      white-space:nowrap;
+      transition: transform .12s ease, box-shadow .12s ease, border-color .12s ease;
+      box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+    }
+
+    .mod-pill:hover{
+      transform: translateY(-1px);
+      border-color: rgba(88,101,242,0.55);
+      box-shadow: 0 10px 24px rgba(0,0,0,0.35);
+    }
+
+    .mod-pill:active{
+      transform: translateY(0px);
+    }
+
+    /* unhide = green success state */
+    .mod-pill.unhide{
+      border-color: rgba(34,197,94,0.35);
+    }
+    .mod-pill.unhide:hover{
+      border-color: rgba(34,197,94,0.65);
+    }
+
     /* ===================================== */
     /* 🖱️ Desktop-only interactive polish    */
     /* ===================================== */
@@ -197,7 +264,7 @@
 
     /* flash on new pick */
     .live-dot.flash {
-      animation: greenFlash 0.85s ease-out;
+      animation: greenFlash 0.85s ease-out !important;
     }
 
     @keyframes greenFlash {
@@ -968,32 +1035,43 @@
           `)
           .join("");
 
+        const isHidden =
+          p.hidden === true ||
+          p.is_hidden === true ||
+          p.hidden_at != null;
+
         const isNew = NEW_IDS.has(p.id);
+        return `
+          <div class="card ${isNew ? "new-pick" : ""}">
+            <div class="top">
+              <div>
+                <div class="name">${escapeHtml(p.channel_name || "Unknown Capper")}</div>
+                <div class="meta">By ${escapeHtml(p.channel_name || "Unknown")} • ${escapeHtml(when)}</div>
+              </div>
 
-         return `
-           <div class="card ${isNew ? "new-pick" : ""}">
-             <div class="top">
-               <div>
-                 <div class="name">${escapeHtml(p.channel_name || "Unknown Capper")}</div>
-                 <div class="meta">By ${escapeHtml(p.channel_name || "Unknown")} • ${escapeHtml(when)}</div>
-               </div>
+              <div class="card-actions">
+                ${sport ? `<span class="tag">${escapeHtml(sport)}</span>` : ""}
 
-               <div style="display:flex; gap:8px; align-items:center;">
-                 ${sport ? `<span class="tag">${escapeHtml(sport)}</span>` : ""}
-                 ${isMod() ? `<button class="mod-hide" data-hide="${p.id}">Hide</button>` : ""}
-               </div>
-             </div>
+                ${
+                  isMod()
+                    ? isHidden
+                      ? `<button class="mod-pill unhide" data-unhide="${p.id}">Unhide</button>`
+                      : `<button class="mod-pill hide" data-hide="${p.id}">Hide</button>`
+                    : ""
+                }
+              </div>
+            </div>
 
-             <div class="content">${formatContent(p.content || "")}</div>
-             ${
-               Array.isArray(p.embeds)
-                 ? p.embeds.map(renderEmbed).join("")
-                 : ""
-             }
+            <div class="content">${formatContent(p.content || "")}</div>
+            ${
+              Array.isArray(p.embeds)
+                ? p.embeds.map(renderEmbed).join("")
+                : ""
+            }
 
-             ${imgs}
-           </div>
-         `;
+            ${imgs}
+          </div>
+        `;
       }).join("");
 
       // ================================
@@ -1031,6 +1109,36 @@
             }
           });
         });
+      
+        // ---- UNHIDE ----
+        feed.querySelectorAll("[data-unhide]").forEach((btn) => {
+          btn.addEventListener("click", async () => {
+            const id = btn.getAttribute("data-unhide");
+            if (!id) return;
+
+            if (!confirm("Unhide this pick for ALL users?")) return;
+
+            try {
+              const res = await fetch("/admin/unhide", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  "x-mod-token": modToken,
+                },
+                body: JSON.stringify({ id }),
+              });
+
+              const out = await res.json().catch(() => ({}));
+              if (!res.ok) throw new Error(out.error || "Unhide failed");
+
+              // refresh data so UI updates cleanly
+              await loadAndCache();
+            } catch (e) {
+              alert("Unhide failed: " + e.message);
+            }
+          });
+        });
+
       }
 
       const countEl = document.getElementById("loadedCount");
@@ -1046,7 +1154,11 @@
 
     async function loadAndCache() {
       try {
-        const res = await fetch("/picks");
+        const res = await fetch("/picks", {
+          headers: modToken
+            ? { "x-mod-token": modToken }
+            : {}
+        });
         const json = await res.json();
 
         const raw = Array.isArray(json)
