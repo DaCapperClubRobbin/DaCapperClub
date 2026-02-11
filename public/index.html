@@ -395,17 +395,14 @@
    /* ===================================== */
 
    .sidebar::-webkit-scrollbar,
-   .main::-webkit-scrollbar {
      width: 12px;
    }
 
    .sidebar::-webkit-scrollbar-track,
-   .main::-webkit-scrollbar-track {
      background: transparent;
    }
 
    .sidebar::-webkit-scrollbar-thumb,
-   .main::-webkit-scrollbar-thumb {
      background: rgba(255,255,255,0.22);
      border-radius: 999px;
      border: 3px solid transparent;
@@ -413,15 +410,42 @@
    }
 
    .sidebar::-webkit-scrollbar-thumb:hover,
-   .main::-webkit-scrollbar-thumb:hover {
      background: rgba(255,255,255,0.38);
    }
 
    /* Firefox */
    .sidebar,
-   .main {
      scrollbar-width: auto;
      scrollbar-color: rgba(255,255,255,0.35) transparent;
+   }
+
+   /* ===================================== */
+   /* 🧭 Feed Scrollbar Only (Picks Area)   */
+   /* ===================================== */
+
+   .main::-webkit-scrollbar {
+     width: 18px; /* bigger */
+   }
+
+   .main::-webkit-scrollbar-track {
+     background: rgba(255,255,255,0.04);
+   }
+
+   .main::-webkit-scrollbar-thumb {
+     background: rgba(88,101,242,0.55); /* brand blurple */
+     border-radius: 999px;
+     border: 4px solid transparent;
+     background-clip: content-box;
+   }
+
+   .main::-webkit-scrollbar-thumb:hover {
+     background: rgba(88,101,242,0.85);
+   }
+
+   /* Firefox */
+   .main {
+     scrollbar-width: auto;
+     scrollbar-color: rgba(88,101,242,0.7) transparent;
    }
 
   </style>
