@@ -1055,10 +1055,7 @@
           `)
           .join("");
 
-        const isHidden =
-          p.hidden === true ||
-          p.is_hidden === true ||
-          p.hidden_at != null;
+        const isHidden = !!p.hidden;
 
         const isNew = NEW_IDS.has(p.id);
         return `
@@ -1098,13 +1095,13 @@
       // MOD: bind Hide buttons
       // ================================
       if (isMod()) {
+        // ---- HIDE ----
         feed.querySelectorAll("[data-hide]").forEach((btn) => {
           btn.addEventListener("click", async () => {
             const id = btn.getAttribute("data-hide");
             if (!id) return;
 
             if (!confirm("Hide this pick for ALL users?")) return;
-
             const reason = prompt("Reason (optional):") || "";
 
             try {
@@ -1120,7 +1117,13 @@
               const out = await res.json().catch(() => ({}));
               if (!res.ok) throw new Error(out.error || "Hide failed");
 
-              await loadAndCache();
+              // ✅ instant UI: mark hidden in cache
+              cache = cache.map((p) =>
+                String(p.id) === String(id) ? { ...p, hidden: true } : p
+              );
+
+              render(cache);
+              buildCappers(cache);
             } catch (e) {
               alert("Hide failed: " + e.message);
             }
@@ -1148,14 +1151,18 @@
               const out = await res.json().catch(() => ({}));
               if (!res.ok) throw new Error(out.error || "Unhide failed");
 
-              // refresh data so UI updates cleanly
-              await loadAndCache();
+              // ✅ instant UI: unmark hidden in cache
+              cache = cache.map((p) =>
+                String(p.id) === String(id) ? { ...p, hidden: false } : p
+              );
+
+              render(cache);
+              buildCappers(cache);
             } catch (e) {
               alert("Unhide failed: " + e.message);
             }
           });
         });
-
       }
 
       const countEl = document.getElementById("loadedCount");
