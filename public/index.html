@@ -214,6 +214,23 @@
     }
 
     /* ===================================== */
+    /* 🚫 Hidden pick styling (mods only)    */
+    /* ===================================== */
+
+    .card.is-hidden {
+      opacity: 0.55;
+      border-color: rgba(239,68,68,0.35);
+      background: rgba(60, 0, 0, 0.15);
+    }
+
+    .card.is-hidden .name::after {
+      content: " (Hidden)";
+      font-size: 12px;
+      font-weight: 600;
+      color: #ef4444;
+    }
+
+    /* ===================================== */
     /* ✨ Capper glow when unread (brand)     */
     /* ===================================== */
 
@@ -1045,7 +1062,7 @@
 
         const isNew = NEW_IDS.has(p.id);
         return `
-          <div class="card ${isNew ? "new-pick" : ""}">
+          <div class="card ${isNew ? "new-pick" : ""} ${isHidden ? "is-hidden" : ""}">
             <div class="top">
               <div>
                 <div class="name">${escapeHtml(p.channel_name || "Unknown Capper")}</div>
@@ -1103,10 +1120,7 @@
               const out = await res.json().catch(() => ({}));
               if (!res.ok) throw new Error(out.error || "Hide failed");
 
-              // remove instantly from UI
-              cache = cache.filter((p) => String(p.id) !== String(id));
-              render(cache);
-              buildCappers(cache);
+              await loadAndCache();
             } catch (e) {
               alert("Hide failed: " + e.message);
             }
